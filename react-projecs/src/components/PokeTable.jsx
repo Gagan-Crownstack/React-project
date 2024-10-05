@@ -1,36 +1,37 @@
-    import React,{useEffect,useState} from "react"
+    import React,{useEffect,useMemo,useState} from "react"
     import Pokerow from "./Pokerow";
     import SearchPanel from "./SearchPanel";
+    import { combineData } from "../constant/RandomFunctions";
 
     const PokeTable = () => {
 
-        const[pokemon, setPokemon]=useState([]); // store pokemonData globally which will be not be changed
-        const [filteredPokemon, setFilteredPokemon]=useState([]);  //filtered state of data
-        const[offset,setOffset]=useState(0);
-        const[currpage,setCurrPage]=useState(1);
+        const[pokemonAllData, setPokemonAllData] =useState([]);// store pokemonData globally which will be not be changed
+        const[filteredPokemon, setFilteredPokemon]=useState([]);  //filtered state of data
+        const[offset,setOffset]=useState(0); //stores key value for next request.
+        const[currpage,setCurrPage]=useState(1); //stores current page number.
         const[pagelimit,setPageLimit]= useState(25); // to change page limit
 
 
         const[isLoading,setIsLoading]=useState(false);
 
-
+        // function set page whenever page limit is changed
         const pageLimitfunc=(data)=>{
-
             let updatepage= Math.ceil((currpage*pagelimit/data))
             setPageLimit(data);
             setCurrPage(updatepage);
-
         }
 
+        // function which called api whenever offset is 
         const fetchpokemondata= async(offset)=>{        
             try{
-
                 setIsLoading(true);
                 const response= await fetch(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=100`);
                 const data =await response.json();
-                setPokemon((prev)=>[...prev,...data.results]);
-                setFilteredPokemon((prev)=>[...prev,...data.results]);
-                // console.log(pokemon);
+                // setPokemon((prev)=>[...prev,...data.results]);
+                console.log("useEfect");
+                const allData = await combineData(data.results);
+                setPokemonAllData((prev)=>[...prev,...allData]);
+                setFilteredPokemon((prev)=>[...prev,...allData]);
                 setIsLoading(false);
             }
             catch(e){
@@ -38,17 +39,17 @@
             }
             
         }
-
-
+        // whenever offset is changed function is called 
         useEffect(()=>{
             fetchpokemondata(offset)
         },[offset])
 
 
+        //pagination whenver pages are witched will render the data according to pagelimit, and page number
         const pagination = (dir) => {
             if (dir === "next") {
                 const nextOffset = currpage * pagelimit;
-                if (nextOffset >= pokemon.length && !isLoading) {
+                if (nextOffset >= pokemonAllData.length && !isLoading) {
                     // Fetch more Pokémon if we are at the end of the current list
                     setOffset((prev) => prev + 100);
                 }
@@ -70,9 +71,9 @@
             <div>
                 {/* search query */}
                 <SearchPanel 
-                    pokemon={pokemon} 
+                    pokemon={pokemonAllData} 
                     onChangepagelimit={(data)=>pageLimitfunc(data)} 
-                    onsearchOffset={()=>setCurrPage(1)}  
+                    resetPage={()=>setCurrPage(1)}  
                     sortfunc={(data)=>setFilteredPokemon(data)} 
                     />
             </div>

@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { getSearchQuery } from "../constant/RandomFunctions";
 import { CiSearch } from "react-icons/ci";
+import Tag from "../constant/Tag";
 
-const SearchPanel = ({ pokemon ,onChangepagelimit ,onsearchOffset, sortfunc }) => {
+const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, sortfunc }) => {
 
     const[query, setQuery]=useState('')
+    const[tag, setTag]=useState([]);
+    const[searchtag, setSearchTag]=useState([]);
     const[exp, setexp]=useState(0)
     let sortedPokemon = [...pokemon];
 
-
+    //sorting data
     const sortData = (dis) => {
 
         if (dis === 'ascend') {
@@ -21,29 +24,100 @@ const SearchPanel = ({ pokemon ,onChangepagelimit ,onsearchOffset, sortfunc }) =
 
         sortfunc(sortedPokemon);
     };
+    //add tag
+    const handleAddTag = (newTag) => {
+        const exists = tag.find(existingTag => existingTag === newTag);
+        if (!exists) {
+            setTag(prev => [...prev, newTag]);
+        }
+    };
+    //delete tag
+    const handeleDeleteTag=(deleteTag)=>{
+        console.log(deleteTag)
+        const newTags= tag.filter((searchtag)=> searchtag !== deleteTag)
+        setTag(newTags)
+
+    }
+
+    const onSearchSimilarTags = () => {
+
+        
+        if (query) {
+            const similarTags = pokemon.flatMap(poke => {
+                const nameMatches = poke.name.toLowerCase().includes(query.toLowerCase());
+                const typeMatches = poke.data.types.some(type => 
+                    type.type.name.toLowerCase().includes(query.toLowerCase())
+                );
+                const colorMatches = poke.species.color.name.toLowerCase().includes(query.toLowerCase());
+                const habitatMatches = poke.species.habitat.name.toLowerCase().includes(query.toLowerCase());
+    
+                if (nameMatches || typeMatches || colorMatches || habitatMatches) {
+                    return [
+                        poke.name, 
+                        ...poke.data.types.map(type => type.type.name), 
+                        poke.species.color.name, 
+                        poke.species.habitat.name
+                    ];
+                }
+                return [];
+            });
+    
+            const uniqueTags = [...new Set(similarTags)];
+    
+            setSearchTag(uniqueTags);
+        } else {
+            setSearchTag([]);
+        }
+    };
+    
+
 
 
     //searchQuery function
-
     const searchQuery = () => {
-        if (query) {
-            const filteredPokemon = pokemon.filter((poke) =>
-                poke.name.toLowerCase().includes(query.toLowerCase())
-            );
-            sortfunc([...filteredPokemon]);
-            onsearchOffset();
-        } else {
-            sortfunc(pokemon);
-        }
+    //searching on these parameter
+    //name 
+    //data.types.type.name types is maybe an array
+    //species.color.name
+    //species.habitat.name
+
+    if (tag.length > 0) {
+        const filteredPokemon = pokemon.filter((poke) => {
+            return tag.some(query => {
+                const nameMatches = poke.name.toLowerCase().includes(query.toLowerCase());
+                const typeMatches = poke.data.types.some(type => type.type.name.toLowerCase().includes(query.toLowerCase()));
+                const colorMatches = poke.species.color.name.toLowerCase().includes(query.toLowerCase());
+                const habitatMatches = poke.species.habitat.name.toLowerCase().includes(query.toLowerCase());
+
+                return nameMatches || typeMatches || colorMatches || habitatMatches;
+            });
+        });
+        sortfunc(filteredPokemon);
+    } else {
+        sortfunc(pokemon);
+    }
     };
+
+
+    
+
+
+
+
+
+
 
     // sort using exp
     const searchViaExp = (e) => {
-        setexp(e.target.value);
-        const expSorted = pokemon.filter((poke) => poke.base_experience >= e.target.value);
+        const expThreshold = Number(e.target.value); // Convert input value to a number
+        // Filter based on base experience
+        const expSorted = pokemon.filter((poke) => poke.data.base_experience >= expThreshold);
+        
         console.log('Filtered Pokémon:', expSorted); // Debugging: Check if the list is filtered correctly
-        sortfunc(expSorted);
+        resetPage();
+        sortfunc(expSorted); // Update the filtered Pokémon in your state
     };
+    
     
     
 
@@ -51,21 +125,44 @@ const SearchPanel = ({ pokemon ,onChangepagelimit ,onsearchOffset, sortfunc }) =
     useEffect(() => {
         const timer = setTimeout(() => {
             searchQuery();
+            onSearchSimilarTags(query)
         }, 600); 
 
         return () => clearTimeout(timer); 
-    }, [query, pokemon,exp]); 
+    }, [query, pokemon, exp, tag]); 
 
     
 
-    return (
-        <div className="w-full mx-auto h-16 gap-5 flex items-center border-2 mb-2">
-
+    return (<>
+            <div className=" flex gap-5 items-center w-full h-16">
+                {
+                    tag.map((t)=> (
+                    <Tag key={t} tag={t} onDelete={(tag)=>handeleDeleteTag(tag)}/>
+                ))
+                }
+            </div>
+            <div className="w-full mx-auto h-16 gap-5 flex items-center border-2 mb-2">
             {/* searching */}
             <div className="w-1/2 flex gap-2">
                 <span className="text-xl font-semibold flex text-center p-2 ">Search : </span>
-                <input className="w-4/6 p-2 rounded-md border-2" type="text" value={query} onChange={(e)=>setQuery(e.target.value)}  placeholder="Enter your query here" />
+                <input className="w-9/12 p-2 rounded-md border-2" type="text" value={query} onChange={(e)=>setQuery(e.target.value)}  placeholder="Enter your query here" />
                 <span className="flex items-center p-2 px-3 rounded-md cursor-pointer hover:opacity-90 active:opacity-70 text-xl font-bold bg-amber-400"><CiSearch /></span>
+                {
+                    searchtag && searchtag.length > 0 &&(<div className="absolute w-1/3 mt-11 h-96 py-5 px-10 bg-amber-300">
+                        <div className="flex flex-col overflow-y-auto h-full">
+        
+                            {
+                                searchtag.map((que,i)=> (
+                                    <div key={i} onClick={()=>handleAddTag(que)} className="py-4 px-5 border-b-2 border-amber-500 hover:bg-amber-200 cursor-pointer ">
+                                        {que}
+                                    </div>
+                                ))
+                            }
+        
+                            </div>
+                        
+                         </div>)
+                }
             </div>
             <div className="flex gap-5">
                     
@@ -99,6 +196,7 @@ const SearchPanel = ({ pokemon ,onChangepagelimit ,onsearchOffset, sortfunc }) =
                 </div>
             </div>
         </div>
+    </>
     );
 };
 
