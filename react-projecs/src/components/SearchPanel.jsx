@@ -146,7 +146,7 @@ const SearchPanel = ({ pokemon, onChangepagelimit, resetPage, sortfunc }) => {
             className="w-9/12 p-2 rounded-md border-2"
             type="text"
             value={query}
-            onFocus={handleDisplayTags}
+            // onFocus={handleDisplayTags}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Enter your query here"
           />
@@ -156,7 +156,7 @@ const SearchPanel = ({ pokemon, onChangepagelimit, resetPage, sortfunc }) => {
           {searchtag && searchtag.length > 0 && (
             <div
               id="displaySimilarQTag"
-              className="absolute w-[614px] invisible rounded-md ml-[99px] top-[260px] h-96 py-5 px-10 bg-amber-300"
+              className="absolute w-[614px] rounded-md ml-[99px] top-[260px] h-96 py-5 px-10 bg-amber-300"
             >
               <div
                 id="searchtab"
