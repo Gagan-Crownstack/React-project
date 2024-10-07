@@ -112,7 +112,7 @@
             <div className="flex gap-6 w-full justify-center my-10"> 
                 <button className={`border-2 py-2 px-4 bg-amber-400 hover:opacity-90 active:opacity-70 ${currpage==1 ? "cursor-not-allowed":""}`}  onClick={()=>pagination("prev")} disabled={currpage==1}>&lt;</button>
                 <div className="border-2 py-2 px-4">{currpage}</div>
-                <button className={`border-2 py-2 px-4 bg-amber-400 hover:opacity-90 active:opacity-70 ${filteredPokemon.length < pagelimit ? "cursor-not-allowed":""}`} disabled={filteredPokemon.length < pagelimit}  onClick={()=>pagination("next")}>&gt;</button>
+                <button className={`border-2 py-2 px-4 bg-amber-400 hover:opacity-90 active:opacity-70 ${filteredPokemon.length < pagelimit*currpage ? "cursor-not-allowed":""}`} disabled={filteredPokemon.length < pagelimit*currpage}  onClick={()=>pagination("next")}>&gt;</button>
             </div>
 
         </div>

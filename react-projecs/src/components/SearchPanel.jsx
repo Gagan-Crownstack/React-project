@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { getSearchQuery } from "../constant/RandomFunctions";
 import { CiSearch } from "react-icons/ci";
 import Tag from "../constant/Tag";
 
-const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, sortfunc }) => {
+const SearchPanel = ({ pokemon ,onChangepagelimit ,resetPage, sortfunc }) => {
 
     const[query, setQuery]=useState('')
     const[tag, setTag]=useState([]);
@@ -29,6 +28,7 @@ const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, so
         const exists = tag.find(existingTag => existingTag === newTag);
         if (!exists) {
             setTag(prev => [...prev, newTag]);
+            setQuery("")
         }
     };
     //delete tag
@@ -40,8 +40,7 @@ const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, so
     }
 
     const onSearchSimilarTags = () => {
-
-        
+    
         if (query) {
             const similarTags = pokemon.flatMap(poke => {
                 const nameMatches = poke.name.toLowerCase().includes(query.toLowerCase());
@@ -65,6 +64,7 @@ const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, so
             const uniqueTags = [...new Set(similarTags)];
     
             setSearchTag(uniqueTags);
+            resetPage();
         } else {
             setSearchTag([]);
         }
@@ -97,11 +97,6 @@ const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, so
         sortfunc(pokemon);
     }
     };
-
-
-    
-
-
 
 
 
@@ -149,7 +144,7 @@ const SearchPanel = ({ pokemonAllData ,pokemon ,onChangepagelimit ,resetPage, so
                 <span className="flex items-center p-2 px-3 rounded-md cursor-pointer hover:opacity-90 active:opacity-70 text-xl font-bold bg-amber-400"><CiSearch /></span>
                 {
                     searchtag && searchtag.length > 0 &&(<div className="absolute w-1/3 mt-11 h-96 py-5 px-10 bg-amber-300">
-                        <div className="flex flex-col overflow-y-auto h-full">
+                        <div id="searchtab" className="flex flex-col overflow-y-auto h-full">
         
                             {
                                 searchtag.map((que,i)=> (
